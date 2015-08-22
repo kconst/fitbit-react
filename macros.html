@@ -1,0 +1,101 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple React</title>
+    <script src="https://fb.me/react-0.13.3.js"></script>
+    <script src="https://fb.me/JSXTransformer-0.13.3.js"></script>
+    <script src="https://code.jquery.com/jquery-2.1.3.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/0.3.2/marked.min.js"></script>
+</head>
+<body>
+<div id="content"></div>
+<script type="text/jsx">
+      // tutorial1.js
+        var model = [
+          {
+            label : 'calories',
+            value : undefined,
+            type : ''
+          },
+          {
+            label : 'fat',
+            value : undefined,
+            type : 'g'
+          },
+          {
+            label : 'protein',
+            value : undefined,
+            type : 'g'
+          },
+          {
+            label : 'carbs',
+            value : undefined,
+            type : 'g'
+          }
+        ];
+
+        var ItemsList = React.createClass({
+          getInitialState: function() {
+            return {data: model};
+          },
+            loadStatsFromServer: function() {
+                $.ajax({
+                    url: this.props.url,
+                    dataType: 'json',
+                    cache: false,
+                    success: function(json) {
+                        var data = $.extend([], model);
+
+                        data.forEach(function(e){
+                            e.value = json[e.label];
+                        });
+
+                        this.setState({data: data});
+                    }.bind(this),
+                    error: function(xhr, status, err) {
+                        console.error(this.props.url, status, err.toString());
+                    }.bind(this)
+                });
+            },
+            componentDidMount : function(){
+                this.loadStatsFromServer();
+                setInterval(this.loadStatsFromServer, 120000);
+            },
+          render: function() {
+            var itemNodes = this.state.data.map(function (item) {
+              return (
+                <Item label={item.label} value={item.value} type={item.type}>
+                  {item.value}
+                </Item>
+              );
+            });
+            return (
+              <div className="itemsList">
+                {itemNodes}
+              </div>
+            );
+          }
+        });
+
+        var Item = React.createClass({
+          render: function() {
+            return (
+              <div className="item">
+                {this.props.label}
+                
+                <h2 className="itemType">
+                  {this.props.value}{this.props.type}
+                </h2>
+              </div>
+            );
+          }
+        });
+        
+        React.render(
+          <ItemsList url="http://localhost:3000/foods"/>,
+          document.getElementById('content')
+        );
+    </script>
+</body>
+</html>
